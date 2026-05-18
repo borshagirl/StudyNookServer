@@ -39,6 +39,14 @@ async function run() {
     const bookingsCollection = db.collection("bookings");
 
 
+    app.get("/rooms/latest", async(req,res)=>{
+
+        const roomsCollection = db.collection("rooms");
+        const result = await roomsCollection.find().sort({createdAt:-1}).limit(6).toArray();
+
+        res.send(result);
+
+    });
 
 
 

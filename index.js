@@ -40,13 +40,38 @@ async function run() {
 
 
     app.get("/rooms/latest", async(req,res)=>{
-
         const roomsCollection = db.collection("rooms");
         const result = await roomsCollection.find().sort({createdAt:-1}).limit(6).toArray();
 
         res.send(result);
-
     });
+
+
+    app.get("/rooms", async (req, res) => {
+
+        const search = req.query.search || "";
+        const amenity = req.query.amenity || "";
+
+        let query = {};
+
+        if (search) {
+            query.roomName = {
+                $regex: search,
+                $options: "i"
+            };
+        }
+
+        if (amenity) {
+            query.amenities = {
+                $in: [amenity]
+            };
+        }
+
+        const result = await roomsCollection.find(query).toArray();
+        res.send(result);
+    });
+
+
 
 
 

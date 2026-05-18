@@ -84,6 +84,47 @@ async function run() {
 
 
 
+    app.post("/bookings", async (req, res) => {
+
+    const bookingData = req.body;
+
+    const existingBooking = await bookingsCollection.findOne({
+            roomId: bookingData.roomId,
+            date: bookingData.date,
+            status: "confirmed",
+
+            startHour: {
+                $lt: bookingData.endHour
+            },
+            endHour: {
+                $gt: bookingData.startHour
+            }
+        });
+
+    if (existingBooking) {
+        return res.status(400).send({
+            message: "Time slot already booked"
+        });
+    }
+
+    bookingData.status = "confirmed";
+    bookingData.createdAt = new Date();
+
+    const result = await bookingsCollection.insertOne(bookingData);
+
+    await roomsCollection.updateOne(
+        {_id: new ObjectId(bookingData.roomId)},
+        {$inc: { bookingCount: 1 }});
+
+    res.send(result);
+    console.log(result)
+
+});
+
+
+
+
+
 
 
     await client.db("admin").command({ ping: 1 });

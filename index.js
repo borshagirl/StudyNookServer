@@ -120,18 +120,77 @@ async function run() {
     });
 
 
-    app.post("/rooms", async (req, res) => {
-        const room = {
-            ...req.body,
-            bookingCount: 0,
-            createdAt: new Date()
-        };
+    app.get("/my-rooms/:userId", async (req, res) => {
+        try {
+            const userId = req.params.userId;
+
+            const rooms = await roomsCollection.find({
+                ownerId: userId
+            }).toArray();
+
+            res.send(rooms);
+
+        } catch (error) {
+            res.status(500).send({ message: "Server error" });
+        }
+    });
+
+
+  app.post("/rooms", async (req, res) => {
+
+        const { roomName, description, image, floor, capacity, hourlyRate, amenities, ownerId } = req.body;
+
+        if (!ownerId) {
+            return res.status(400).send({
+                message: "Owner ID missing"
+            });
+        }
+
+        const room = { roomName, description, image, floor, capacity: Number(capacity), hourlyRate: Number(hourlyRate), amenities: amenities || [], ownerId, bookingCount: 0, createdAt: new Date()};
 
         const result = await roomsCollection.insertOne(room);
 
-        res.send({ message: "Room added successfully", result });
-});
-    
+        res.send({
+            message: "Room added successfully",
+            result
+        });
+    });
+
+
+    app.patch("/rooms/:id", async (req, res) => {
+        try {
+            const id = req.params.id;
+            const updatedData = req.body;
+
+            const result = await roomsCollection.updateOne(
+                { _id: new ObjectId(id) },
+                {
+                    $set: updatedData
+                }
+            );
+
+            res.send(result);
+
+        } catch (error) {
+            res.status(500).send({ message: "Update failed" });
+        }
+    });
+
+
+    app.delete("/rooms/:id", async (req, res) => {
+        try {
+            const id = req.params.id;
+        
+            const result = await roomsCollection.deleteOne({
+                _id: new ObjectId(id)
+            });
+            
+            res.send(result);
+        
+        } catch (error) {
+            res.status(500).send({ message: "Delete failed" });
+        }
+    });
 
 
 

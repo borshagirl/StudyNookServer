@@ -5,6 +5,10 @@ dns.setServers(['8.8.8.8', '1.1.1.1'])
 const express = require("express")
 const dotenv = require("dotenv")
 const cors = require("cors")
+const cookieParser = require("cookie-parser");
+const { betterAuth } = require("better-auth");
+const { toNodeHandler } = require("better-auth/node");
+const { mongodbAdapter } = require("better-auth/adapters/mongodb");
 dotenv.config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -14,8 +18,12 @@ const port = process.env.PORT || 5000
 
 const app = express()
 
-app.use(cors())
+app.use(cors({
+    origin:"http://localhost:3000",
+    credentials:true
+}));
 app.use(express.json())
+app.use(cookieParser());
 
 
 const client = new MongoClient(uri, {
@@ -29,6 +37,26 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
+
+    auth = betterAuth({
+        database: mongodbAdapter(client.db("studyNookDB")),
+        emailAndPassword: {
+            enabled: true
+        },
+        trustedOrigins: [
+            "http://localhost:3000"
+        ],
+        secret: process.env.BETTER_AUTH_SECRET,
+        baseURL: process.env.BETTER_AUTH_URL,
+        advanced: {
+            useSecureCookies: false
+        }
+    });
+
+    app.all("/api/auth/{*any}", toNodeHandler(auth));
+
+
+
 
     // Database
     const db = client.db("studyNookDB");
@@ -140,6 +168,8 @@ run().catch(console.dir);
         res.send("StudyNook Server is Fine")
 
     })
+
+
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)

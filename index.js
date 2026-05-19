@@ -39,18 +39,30 @@ async function run() {
     await client.connect();
 
     auth = betterAuth({
-        database: mongodbAdapter(client.db("studyNookDB")),
-        emailAndPassword: {
-            enabled: true
+        database: mongodbAdapter(
+            client.db("studyNookDB")
+        ),
+
+        emailAndPassword:{
+            enabled:true
         },
-        trustedOrigins: [
+
+        trustedOrigins:[
             "http://localhost:3000"
         ],
+
         secret: process.env.BETTER_AUTH_SECRET,
+
         baseURL: process.env.BETTER_AUTH_URL,
-        advanced: {
-            useSecureCookies: false
+
+        session: {
+            expiresIn: 60 * 60 * 24 * 7
+        },
+
+        advanced:{
+            useSecureCookies:false
         }
+
     });
 
     app.all("/api/auth/{*any}", toNodeHandler(auth));
@@ -108,44 +120,78 @@ async function run() {
     });
 
 
+    app.post("/rooms", async (req, res) => {
+        const room = {
+            ...req.body,
+            bookingCount: 0,
+            createdAt: new Date()
+        };
+
+        const result = await roomsCollection.insertOne(room);
+
+        res.send({ message: "Room added successfully", result });
+});
+    
+
+
+
 
 
 
 
     app.post("/bookings", async (req, res) => {
 
-    const bookingData = req.body;
+    const { roomId, roomName, date, startHour, endHour, specialNote, userId} = req.body;
 
     const existingBooking = await bookingsCollection.findOne({
-            roomId: bookingData.roomId,
-            date: bookingData.date,
-            status: "confirmed",
+        roomId,
+        date,
+        status:"confirmed",
 
-            startHour: {
-                $lt: bookingData.endHour
-            },
-            endHour: {
-                $gt: bookingData.startHour
-            }
-        });
+        startHour:{
+            $lt:Number(endHour)
+        },
+        endHour:{
+            $gt:Number(startHour)
+        }
+    });
 
-    if (existingBooking) {
+    if(existingBooking){
         return res.status(400).send({
-            message: "Time slot already booked"
+            message:"Time slot already booked"
         });
     }
+    const bookingData={ roomId, roomName, date, startHour:Number(startHour), endHour:Number(endHour), specialNote, userId, status:"confirmed", createdAt:new Date()}
 
-    bookingData.status = "confirmed";
-    bookingData.createdAt = new Date();
-
-    const result = await bookingsCollection.insertOne(bookingData);
+    const result=await bookingsCollection.insertOne(bookingData);
 
     await roomsCollection.updateOne(
-        {_id: new ObjectId(bookingData.roomId)},
-        {$inc: { bookingCount: 1 }});
+        {
+            _id:new ObjectId(roomId)
+        },
+        {
+            $inc:{
+                bookingCount:1
+            }
+        }
+
+    );
 
     res.send(result);
-    console.log(result)
+});
+
+
+app.get("/my-bookings/:userId", async(req,res)=>{
+
+    const userId=req.params.userId;
+
+    const result=await bookingsCollection.find({
+
+        userId
+
+    }).toArray();
+
+    res.send(result);
 
 });
 

@@ -51,6 +51,13 @@ async function run() {
             "http://localhost:3000"
         ],
 
+        socialProviders:{
+            google:{
+                clientId: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET
+            }
+        },
+
         secret: process.env.BETTER_AUTH_SECRET,
 
         baseURL: process.env.BETTER_AUTH_URL,
@@ -200,7 +207,7 @@ async function run() {
 
     app.post("/bookings", async (req, res) => {
 
-    const { roomId, roomName, date, startHour, endHour, specialNote, userId} = req.body;
+    const { roomId, roomName, image, date, startHour, endHour, specialNote, userId} = req.body;
 
     const existingBooking = await bookingsCollection.findOne({
         roomId,
@@ -220,7 +227,7 @@ async function run() {
             message:"Time slot already booked"
         });
     }
-    const bookingData={ roomId, roomName, date, startHour:Number(startHour), endHour:Number(endHour), specialNote, userId, status:"confirmed", createdAt:new Date()}
+    const bookingData={ roomId, roomName, image, date, startHour:Number(startHour), endHour:Number(endHour), specialNote, userId, status:"confirmed", createdAt:new Date()}
 
     const result=await bookingsCollection.insertOne(bookingData);
 
@@ -252,6 +259,21 @@ app.get("/my-bookings/:userId", async(req,res)=>{
 
     res.send(result);
 
+});
+
+
+  app.patch("/bookings/:id/cancel", async (req, res) => {
+
+  const id = req.params.id;
+
+  const result = await bookingsCollection.updateOne(
+    { _id: new ObjectId(id) },
+    {
+      $set: { status: "cancelled" }
+    }
+  );
+
+  res.send(result);
 });
 
 

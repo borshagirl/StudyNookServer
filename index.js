@@ -36,7 +36,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     auth = betterAuth({
         database: mongodbAdapter(
@@ -282,7 +282,7 @@ app.get("/my-bookings/:userId", async(req,res)=>{
 
 
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // await client.close();
@@ -298,6 +298,10 @@ run().catch(console.dir);
 
 
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`)
-})
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log("Server running");
+  });
+}
+
+export default app;

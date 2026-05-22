@@ -21,13 +21,15 @@ const app = express()
 app.use(cors({
     origin: [
         "http://localhost:3000",
-        process.env.NEXT_CLIENT_SIDE_URL
+        "https://studynook-client-beta.vercel.app"
     ],
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 }));
 
 app.use(express.json());
 app.use(cookieParser());
+app.options("*", cors());
 
 
 const client = new MongoClient(uri, {

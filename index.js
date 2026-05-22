@@ -51,6 +51,7 @@ let bookingsCollection;
 async function run() {
   try {
     await client.connect();
+
     db = client.db("studyNookDB");
 
     roomsCollection = db.collection("rooms");
@@ -91,7 +92,7 @@ async function run() {
 
     });
 
-    app.all("/api/auth/{*any}", toNodeHandler(auth));
+    // app.all("/api/auth/{*any}", toNodeHandler(auth));
 
 
 
@@ -105,13 +106,30 @@ async function run() {
     // const bookingsCollection = db.collection("bookings");
 
 
-    app.get("/rooms/latest", async(req,res)=>{
-        const roomsCollection = db.collection("rooms");
-        const result = await roomsCollection.find().sort({createdAt:-1}).limit(6).toArray();
 
-        res.send(result);
-    });
 
+
+    // app.get("/rooms/latest", async(req,res)=>{
+    //     const roomsCollection = db.collection("rooms");
+    //     const result = await roomsCollection.find().sort({createdAt:-1}).limit(6).toArray();
+
+    //     res.send(result);
+    // });
+
+ app.get("/rooms/latest", async (req, res) => {
+    try {
+        const result = await roomsCollection
+            .find()
+            .sort({ createdAt: -1 })
+            .limit(6)
+            .toArray();
+
+        res.status(200).json(result);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
     app.get("/rooms", async (req, res) => {
 

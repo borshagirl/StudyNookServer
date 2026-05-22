@@ -19,11 +19,23 @@ const port = process.env.PORT || 5000
 const app = express()
 
 app.use(cors({
-    origin:"http://localhost:3000",
-    credentials:true
+    origin: [
+        "http://localhost:3000",
+        process.env.NEXT_CLIENT_SIDE_URL
+    ],
+    credentials: true
 }));
-app.use(express.json())
+
+app.use(express.json());
 app.use(cookieParser());
+
+
+// app.use(cors({
+//     origin:"http://localhost:3000",
+//     credentials:true
+// }));
+// app.use(express.json())
+// app.use(cookieParser());
 
 
 const client = new MongoClient(uri, {
@@ -67,7 +79,7 @@ async function run() {
         },
 
         advanced:{
-            useSecureCookies:false
+            useSecureCookies: true
         }
 
     });

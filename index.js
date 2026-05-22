@@ -30,14 +30,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-// app.use(cors({
-//     origin:"http://localhost:3000",
-//     credentials:true
-// }));
-// app.use(express.json())
-// app.use(cookieParser());
-
-
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -46,9 +38,22 @@ const client = new MongoClient(uri, {
   }
 });
 
+
+let db;
+let roomsCollection;
+let usersCollection;
+let bookingsCollection;
+
+
+
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
+    db = client.db("studyNookDB");
+
+    roomsCollection = db.collection("rooms");
+    usersCollection = db.collection("users");
+    bookingsCollection = db.collection("bookings");
 
    let auth = betterAuth({
         database: mongodbAdapter(
@@ -89,13 +94,13 @@ async function run() {
 
 
 
-    // Database
-    const db = client.db("studyNookDB");
+    // // Database
+    // const db = client.db("studyNookDB");
 
-    // Collections
-    const usersCollection = db.collection("users");
-    const roomsCollection = db.collection("rooms");
-    const bookingsCollection = db.collection("bookings");
+    // // Collections
+    // const usersCollection = db.collection("users");
+    // const roomsCollection = db.collection("rooms");
+    // const bookingsCollection = db.collection("bookings");
 
 
     app.get("/rooms/latest", async(req,res)=>{
@@ -126,7 +131,7 @@ async function run() {
             };
         }
 
-        const result = await roomsCollection.find(query).toArray();
+        const result = await roomsCollection.find({}).toArray();
         res.send(result);
     });
 
@@ -210,10 +215,6 @@ async function run() {
             res.status(500).send({ message: "Delete failed" });
         }
     });
-
-
-
-
 
 
 

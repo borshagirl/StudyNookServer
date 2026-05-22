@@ -1,16 +1,16 @@
 
-const dns = require("dns")
-dns.setServers(['8.8.8.8', '1.1.1.1'])
+import dns from "dns";
+import express from "express";
+import dotenv from "dotenv";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
-const express = require("express")
-const dotenv = require("dotenv")
-const cors = require("cors")
-const cookieParser = require("cookie-parser");
-const { betterAuth } = require("better-auth");
-const { toNodeHandler } = require("better-auth/node");
-const { mongodbAdapter } = require("better-auth/adapters/mongodb");
-dotenv.config()
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+dotenv.config();
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import { MongoClient, ServerApiVersion, ObjectId } from "mongodb";
+import { betterAuth } from "better-auth";
+import { toNodeHandler } from "better-auth/node";
+import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 
 const uri = process.env.MONGO_DB_URI;
@@ -38,7 +38,7 @@ async function run() {
   try {
     // await client.connect();
 
-    auth = betterAuth({
+   let auth = betterAuth({
         database: mongodbAdapter(
             client.db("studyNookDB")
         ),
@@ -48,7 +48,7 @@ async function run() {
         },
 
         trustedOrigins:[
-            "http://localhost:3000"
+            process.env.NEXT_CLIENT_SIDE_URL
         ],
 
         socialProviders:{
@@ -279,9 +279,6 @@ app.get("/my-bookings/:userId", async(req,res)=>{
 
 
 
-
-
-
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
@@ -298,10 +295,10 @@ run().catch(console.dir);
 
 
 
-if (process.env.NODE_ENV !== "production") {
+// if (process.env.NODE_ENV !== "production") {
   app.listen(port, () => {
     console.log(`Server running on ${port}`);
   });
-}
 
-module.exports = app;
+
+// module.exports = app;

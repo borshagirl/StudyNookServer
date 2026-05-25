@@ -44,7 +44,7 @@ let bookingsCollection;
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
 
         db = client.db("studyNookDB");
 
@@ -243,10 +243,6 @@ async function run() {
           });
 
 
-        app.get("/", (req, res) => {
-            res.send("StudyNook Server is Running 🚀");
-        });
-
         app.use((req, res) => {
             res.status(404).json({
                 success: false,
@@ -262,6 +258,10 @@ async function run() {
 }
 
 run().catch(console.dir);
+
+  app.get("/", (req, res) => {
+            res.send("StudyNook Server is Running");
+        });
 
 export default app;
 

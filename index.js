@@ -44,7 +44,7 @@ let bookingsCollection;
 
 async function run() {
     try {
-        // await client.connect();
+        await client.connect();
 
         db = client.db("studyNookDB");
 
@@ -75,9 +75,9 @@ async function run() {
                 expiresIn: 60 * 60 * 24 * 7
             },
 
-            advanced: {
-                useSecureCookies: false
-            }
+           advanced: {
+               useSecureCookies: true
+           }
         });
 
         app.use("/api/auth", toNodeHandler(auth));
